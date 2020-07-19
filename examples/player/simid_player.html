@@ -35,8 +35,9 @@
         simidPlayer.stopAd();
       }
 
+      let isNonLinear = document.getElementById("nonlinear_ad").checked;
       // Init ad should be called before playad.
-      simidPlayer = new SimidPlayer(() => {simidPlayer = null;});
+      simidPlayer = new SimidPlayer(() => {simidPlayer = null;}, isNonLinear);
       simidPlayer.initializeAd();
     }
 
@@ -86,7 +87,15 @@
         <button onclick="switchCreative('nonlinear.html')">nonlinear</button>
       </td>
       </tr>
-
+      <tr>
+        <td>Ad type</td>
+        <td>
+          <input type="radio" id="linear_ad" name="ad_type" checked> <label for="linear_ad" style="font-size: 16px;">Linear
+        Ad</label>
+        <input type="radio" id="nonlinear_ad" name="ad_type"> <label for="nonlinear_ad" style="font-size: 16px;">Non-Linear
+          Ad</label>
+        </td>
+      </tr>
       <tr>
         <td>Interactive Creative File</td>
         <td><input type="text" id="creative_url" size = 30 

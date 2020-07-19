@@ -10,7 +10,7 @@ class SimidPlayer {
    * from the creative.
    * @param {!Function} This function gets called when the ad stops.
    */
-  constructor(adComplete) {
+  constructor(adComplete, isNonLinear) {
     /**
      * The protocol for sending and receiving messages.
      * @protected {!SimidProtocol}
@@ -60,6 +60,8 @@ class SimidPlayer {
      * @private {number}
      */
     this.requestedDuration_ = NO_REQUESTED_DURATION;
+
+    this.isNonLinear_ = isNonLinear;
 
     /**
      * Resolution function for the session created message
@@ -131,7 +133,11 @@ class SimidPlayer {
    * Plays a SIMID  creative once it has responded to the initialize ad message.
    */
   playAd() {
-    this.contentVideoElement_.play();
+    if (this.isNonLinear_) {
+      this.contentVideoElement_.play();
+    } else {
+      this.contentVideoElement_.pause();
+    }
     // This example waits for the ad to be initialized, before playing video.
     // NOTE: Not all players will wait for session creation and initialization
     // before they start playback.
@@ -154,10 +160,11 @@ class SimidPlayer {
     // created iframe.
     playerDiv.appendChild(simidIframe);
     // Set up css to overlay the SIMID iframe over the video creative.
-    
-    //simidIframe.classList.add('simid_creative');
-    simidIframe.classList.add('nonlinear_ad');
-
+    if (this.isNonLinear_) {
+      simidIframe.classList.add('nonlinear_ad');
+    } else {
+      simidIframe.classList.add('simid_creative');
+    }
     // Set the iframe creative, this should be an html creative.
     // TODO: This sample does not show what to do when loading fails.
     simidIframe.src = document.getElementById('creative_url').value;
@@ -284,9 +291,11 @@ class SimidPlayer {
     // Once the ad is successfully initialized it can start.
     // If the ad is not visible it must be made visible here.
     this.showSimidIFrame_();
-    // this.showAdPlayer_();
-    // this.adVideoElement_.src = document.getElementById('video_url').value;
-    // this.adVideoElement_.play();
+    if (!this.isNonLinear_) {
+      this.showAdPlayer_();
+      this.adVideoElement_.src = document.getElementById('video_url').value;
+      this.adVideoElement_.play();
+    }
     this.simidProtocol.sendMessage(PlayerMessage.START_CREATIVE);
   }
 
@@ -443,11 +452,13 @@ class SimidPlayer {
   
   /** The creative wants to play video. */
   onRequestPlay(incomingMessage) {
-    // this.adVideoElement_.play().then(
-    //   // The play function returns a promise.
-    //   this.simidProtocol.resolve(incomingMessage),
-    //   this.simidProtocol.reject(incomingMessage)
-    // );
+    if (!this.isNonLinear_) {
+      this.adVideoElement_.play().then(
+        // The play function returns a promise.
+        this.simidProtocol.resolve(incomingMessage),
+        this.simidProtocol.reject(incomingMessage)
+      );
+    }
   }
   
   /** The creative wants to pause video. */
