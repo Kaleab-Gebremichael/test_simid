@@ -146,6 +146,10 @@ class SimidPlayer {
     });
   }
 
+  closeAd() {
+    this.onRequestStop(CreativeMessage.REQUEST_STOP);
+  }
+
   /**
    * Sets up an iframe for holding the simid element.
    *
@@ -191,6 +195,7 @@ class SimidPlayer {
         this.onRequestChangeAdDuration.bind(this));
     this.simidProtocol.addListener(CreativeMessage.GET_MEDIA_STATE, this.onGetMediaState.bind(this));
     this.simidProtocol.addListener(CreativeMessage.LOG, this.onReceiveCreativeLog.bind(this));
+    this.simidProtocol.addListener(CreativeMessage.REQUEST_VIDEO_PAUSE, this.onRequestVideoPause.bind(this));
   }
 
   /**
@@ -220,16 +225,40 @@ class SimidPlayer {
    * Returns the dimensions of an element within the player div.
    * @return {!Object}
    */
-  getDimensions(elem) {
+  getVideoDimensions(elem) {
     // The player div wraps all elements and is used as the offset.
     const playerDiv = document.getElementById('player_div');
     const playerRect = playerDiv.getBoundingClientRect();
     const videoRect = elem.getBoundingClientRect();
+    console.log("player_x: " +playerRect.x + " player_y: " + playerRect.y);
+    console.log("video_x: " +videoRect.x + " video_y: " + videoRect.y);
+    console.log("height: " +videoRect.width + " width: " + videoRect.height);
     return {
-      'x' : videoRect.x - playerRect.x,
-      'y' : videoRect.y - playerRect.y,
+      // 'x' : videoRect.x - playerRect.x,
+      // 'y' : videoRect.y - playerRect.y,
+      'x' : 100,
+      'y' : 100,
       'width' : videoRect.width,
       'height' : videoRect.height,
+      // TODO: This example does not currently support transition duration.
+      'transitionDuration': 0
+    };
+  }
+
+  getCreativeDimensions() {
+    // The player div wraps all elements and is used as the offset.
+    const playerDiv = document.getElementById('player_div');
+    const playerRect = playerDiv.getBoundingClientRect();
+    const x_val = document.getElementById('x_val');
+    const y_val = document.getElementById('y_val');
+    const width = document.getElementById('width');
+    const height = document.getElementById('height');
+
+    return {
+      'x' : x_val - playerRect.x,
+      'y' : y_val - playerRect.y,
+      'width' : width,
+      'height' : height,
       // TODO: This example does not currently support transition duration.
       'transitionDuration': 0
     };
@@ -240,10 +269,11 @@ class SimidPlayer {
    * @private
    */
   sendInitMessage_() {
-    const videoDimensions = this.getDimensions(this.contentVideoElement_);
+    const videoDimensions = this.getVideoDimensions(this.contentVideoElement_);
+    // const creativeDimensions = this.getCreativeDimensions();
     // Since the creative starts as hidden it will take on the
     // video element dimensions, so tell the ad about those dimensions.
-    const creativeDimensions = this.getDimensions(this.contentVideoElement_);
+    const creativeDimensions = this.getVideoDimensions(this.contentVideoElement_);
 
     const environmentData = {
       'videoDimensions': videoDimensions,
@@ -461,9 +491,15 @@ class SimidPlayer {
     }
   }
   
-  /** The creative wants to pause video. */
+  /** The creative wants to pause ad video. */
   onRequestPause(incomingMessage) {
     this.adVideoElement_.pause();
+    this.simidProtocol.resolve(incomingMessage);
+  }
+
+  /** The creative wants to pause content video. */
+  onRequestVideoPause(incomingMessage) {
+    this.contentVideoElement_.pause();
     this.simidProtocol.resolve(incomingMessage);
   }
   

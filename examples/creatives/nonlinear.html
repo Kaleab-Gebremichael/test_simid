@@ -1,7 +1,7 @@
 <html>
   <head>
     <script src="../simid_protocol.js"> </script>
-    <script src="base_nonlinear_simid_creative.js"> </script>
+    <script src="base_simid_creative.js"> </script>
     <script src="nonlinear.js"> </script>
   </head>
   <style>
@@ -14,7 +14,7 @@
   </style>
   <body>
     <button id="close_ad">X</button>
-    <div id="ad_bodies"><button onclick="console.log('clicked on content')">Nonlinear Ad Content</button></div>
+    <div id="content_container"><button>Expand Ad</button></div>
     <script>
       //The creative should first call ready
       const nonLinear = new NonLinear();
