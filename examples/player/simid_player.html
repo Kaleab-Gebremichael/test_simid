@@ -52,8 +52,22 @@
       if (!simidPlayer) {
         initAd();
       }
-
       simidPlayer.closeAd();
+    }
+
+    function skipAd() {
+      if (!simidPlayer) {
+        initAd();
+      }
+      simidPlayer.skipAd();
+    }
+
+    function stopAd() {
+      simidPlayer.stopAd();
+    }
+
+    function fatalError() {
+      simidPlayer.fatalError();
     }
 
     function switchCreative(value) {
@@ -139,7 +153,10 @@
     </table>
     <button onclick="playAd()"> Start ad playback </button>
     <button onclick="initAd()"> Initialize the creative </button>
-    <button onclick="closeAd()"> Close the ad</button> 
+    <button onclick="closeAd()"> Close the ad </button> 
+    <button onclick="stopAd()"> Stop ad </button>
+    <button onclick="skipAd()"> Skip ad </button>
+    <button onclick="fatalError()"> Fatal Error </button>
   </div>
 
   <div id="player_div" style="position:absolute;">
