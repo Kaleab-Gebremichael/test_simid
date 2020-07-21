@@ -111,6 +111,9 @@ class SimidPlayer {
    */
   initializeAd() {
     this.simidIframe_ = this.createSimidIframe_();
+    if (this.isNonLinear_) {
+      this.loadNonLinear_(this.getNonLinearDimensions());
+    }
     this.requestDuration_ = NO_REQUESTED_DURATION;
 
     // Prepare for the case that init fails before sending
@@ -165,7 +168,8 @@ class SimidPlayer {
     playerDiv.appendChild(simidIframe);
     // Set up css to overlay the SIMID iframe over the video creative.
     if (this.isNonLinear_) {
-      simidIframe.classList.add('nonlinear_ad');
+      // simidIframe.classList.add('nonlinear_ad');
+      // this.loadNonLinear_();
     } else {
       simidIframe.classList.add('simid_creative');
     }
@@ -196,7 +200,8 @@ class SimidPlayer {
     this.simidProtocol.addListener(CreativeMessage.GET_MEDIA_STATE, this.onGetMediaState.bind(this));
     this.simidProtocol.addListener(CreativeMessage.LOG, this.onReceiveCreativeLog.bind(this));
     this.simidProtocol.addListener(CreativeMessage.REQUEST_VIDEO_PAUSE, this.onRequestVideoPause.bind(this));
-    this.simidProtocol.addListener(CreativeMessage.REQUEST_RESIZE, this.onRequestResize.bind(this));
+    this.simidProtocol.addListener(CreativeMessage.REQUEST_RESIZE, this.onExpandResize.bind(this));
+    this.simidProtocol.addListener(CreativeMessage.REQUEST_COLLAPSE, this.loadNonLinear_.bind(this));
   }
 
   /**
@@ -226,14 +231,11 @@ class SimidPlayer {
    * Returns the dimensions of an element within the player div.
    * @return {!Object}
    */
-  getDefaultDimensions(elem) {
+  getFullPlayerDimensions(elem) {
     // The player div wraps all elements and is used as the offset.
     const playerDiv = document.getElementById('player_div');
     const playerRect = playerDiv.getBoundingClientRect();
     const videoRect = elem.getBoundingClientRect();
-    // console.log("player_x: " +playerRect.x + " player_y: " + playerRect.y);
-    // console.log("video_x: " +videoRect.x + " video_y: " + videoRect.y);
-    // console.log("height: " +videoRect.width + " width: " + videoRect.height);
     return {
       'x' : videoRect.x - playerRect.x,
       'y' : videoRect.y - playerRect.y,
@@ -263,19 +265,33 @@ class SimidPlayer {
     };
   }
 
-  onRequestResize(creativeMessage) {
+  loadNonLinear_() {
+    const dimensions = this.getNonLinearDimensions();
+
+    this.simidIframe_.style.height = dimensions.height;
+    this.simidIframe_.style.width = dimensions.width;
     
+    this.simidIframe_.style.left = `${dimensions.x}px`;
+    this.simidIframe_.style.top = `${dimensions.y}px`;
+
+    this.simidIframe_.style.position = "absolute";
+
+    this.contentVideoElement_.play();
+  }
+
+  onExpandResize(creativeMessage) {
     if (!this.isNonLinear_){
-      this.sendLog("Can not resize linear ads");
+      this.sendLog("Cannot resize linear ads");
       return;
     } 
 
-    const nonLinearDimensions = this.getNonLinearDimensions();
-    this.simidIframe_.style.height = nonLinearDimensions.height;
-    this.simidIframe_.style.width = nonLinearDimensions.width;
+    const fullDimensions = this.getFullPlayerDimensions(this.contentVideoElement_);
+
+    this.simidIframe_.style.height = fullDimensions.height;
+    this.simidIframe_.style.width = fullDimensions.width;
     
-    this.simidIframe_.style.left = `${nonLinearDimensions.x}px`;
-    this.simidIframe_.style.top = `${nonLinearDimensions.y}px`;
+    this.simidIframe_.style.left = `${fullDimensions.x}px`;
+    this.simidIframe_.style.top = `${fullDimensions.y}px`;
 
     this.onRequestVideoPause(CreativeMessage.REQUEST_VIDEO_PAUSE);
   }
@@ -285,11 +301,11 @@ class SimidPlayer {
    * @private
    */
   sendInitMessage_() {
-    const videoDimensions = this.getDefaultDimensions(this.contentVideoElement_);
+    const videoDimensions = this.getFullPlayerDimensions(this.contentVideoElement_);
     // const creativeDimensions = this.getNonLinearDimensions();
     // Since the creative starts as hidden it will take on the
     // video element dimensions, so tell the ad about those dimensions.
-    const creativeDimensions = this.getDefaultDimensions(this.contentVideoElement_);
+    const creativeDimensions = this.getFullPlayerDimensions(this.contentVideoElement_);
 
     const environmentData = {
       'videoDimensions': videoDimensions,

@@ -11,10 +11,16 @@
       font-size: 14;
       float: right;
     }
+    button {
+      cursor: pointer;
+    }
   </style>
   <body>
     <button id="close_ad">X</button>
-    <div id="content_container"><button>Expand Ad</button></div>
+    <div id="content_container">
+      <button id="expand_button">Expand Ad</button>
+      <button id="collapse_button">Collapse Ad</button>
+    </div>
     <script>
       //The creative should first call ready
       const nonLinear = new NonLinear();

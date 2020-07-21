@@ -13,7 +13,8 @@ class NonLinear extends BaseSimidCreative {
    */
   addButtonClickActions_() {
     this.sendMessageOnButtonClick_("close_ad", CreativeMessage.REQUEST_STOP);
-    this.sendMessageOnButtonClick_("content_container", CreativeMessage.REQUEST_RESIZE);
+    this.sendMessageOnButtonClick_("expand_button", CreativeMessage.REQUEST_RESIZE);
+    this.sendMessageOnButtonClick_("collapse_button", CreativeMessage.REQUEST_COLLAPSE);
   }
 
   /**
