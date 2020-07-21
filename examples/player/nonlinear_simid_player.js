@@ -196,6 +196,7 @@ class SimidPlayer {
     this.simidProtocol.addListener(CreativeMessage.GET_MEDIA_STATE, this.onGetMediaState.bind(this));
     this.simidProtocol.addListener(CreativeMessage.LOG, this.onReceiveCreativeLog.bind(this));
     this.simidProtocol.addListener(CreativeMessage.REQUEST_VIDEO_PAUSE, this.onRequestVideoPause.bind(this));
+    this.simidProtocol.addListener(CreativeMessage.REQUEST_RESIZE, this.onRequestResize.bind(this));
   }
 
   /**
@@ -225,19 +226,17 @@ class SimidPlayer {
    * Returns the dimensions of an element within the player div.
    * @return {!Object}
    */
-  getVideoDimensions(elem) {
+  getDefaultDimensions(elem) {
     // The player div wraps all elements and is used as the offset.
     const playerDiv = document.getElementById('player_div');
     const playerRect = playerDiv.getBoundingClientRect();
     const videoRect = elem.getBoundingClientRect();
-    console.log("player_x: " +playerRect.x + " player_y: " + playerRect.y);
-    console.log("video_x: " +videoRect.x + " video_y: " + videoRect.y);
-    console.log("height: " +videoRect.width + " width: " + videoRect.height);
+    // console.log("player_x: " +playerRect.x + " player_y: " + playerRect.y);
+    // console.log("video_x: " +videoRect.x + " video_y: " + videoRect.y);
+    // console.log("height: " +videoRect.width + " width: " + videoRect.height);
     return {
-      // 'x' : videoRect.x - playerRect.x,
-      // 'y' : videoRect.y - playerRect.y,
-      'x' : 100,
-      'y' : 100,
+      'x' : videoRect.x - playerRect.x,
+      'y' : videoRect.y - playerRect.y,
       'width' : videoRect.width,
       'height' : videoRect.height,
       // TODO: This example does not currently support transition duration.
@@ -245,18 +244,18 @@ class SimidPlayer {
     };
   }
 
-  getCreativeDimensions() {
+  getNonLinearDimensions() {
     // The player div wraps all elements and is used as the offset.
     const playerDiv = document.getElementById('player_div');
     const playerRect = playerDiv.getBoundingClientRect();
-    const x_val = document.getElementById('x_val');
-    const y_val = document.getElementById('y_val');
-    const width = document.getElementById('width');
-    const height = document.getElementById('height');
+    const x_val = document.getElementById('x_val').value;
+    const y_val = document.getElementById('y_val').value;
+    const width = document.getElementById('width').value;
+    const height = document.getElementById('height').value;
 
     return {
-      'x' : x_val - playerRect.x,
-      'y' : y_val - playerRect.y,
+      'x' : x_val,
+      'y' : y_val,
       'width' : width,
       'height' : height,
       // TODO: This example does not currently support transition duration.
@@ -264,16 +263,33 @@ class SimidPlayer {
     };
   }
 
+  onRequestResize(creativeMessage) {
+    
+    if (!this.isNonLinear_){
+      this.sendLog("Can not resize linear ads");
+      return;
+    } 
+
+    const nonLinearDimensions = this.getNonLinearDimensions();
+    this.simidIframe_.style.height = nonLinearDimensions.height;
+    this.simidIframe_.style.width = nonLinearDimensions.width;
+    
+    this.simidIframe_.style.left = `${nonLinearDimensions.x}px`;
+    this.simidIframe_.style.top = `${nonLinearDimensions.y}px`;
+
+    this.onRequestVideoPause(CreativeMessage.REQUEST_VIDEO_PAUSE);
+  }
+
   /**
    * Initializes the SIMID creative with all data it needs.
    * @private
    */
   sendInitMessage_() {
-    const videoDimensions = this.getVideoDimensions(this.contentVideoElement_);
-    // const creativeDimensions = this.getCreativeDimensions();
+    const videoDimensions = this.getDefaultDimensions(this.contentVideoElement_);
+    // const creativeDimensions = this.getNonLinearDimensions();
     // Since the creative starts as hidden it will take on the
     // video element dimensions, so tell the ad about those dimensions.
-    const creativeDimensions = this.getVideoDimensions(this.contentVideoElement_);
+    const creativeDimensions = this.getDefaultDimensions(this.contentVideoElement_);
 
     const environmentData = {
       'videoDimensions': videoDimensions,
