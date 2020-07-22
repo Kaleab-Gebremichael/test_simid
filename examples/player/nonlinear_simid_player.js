@@ -110,10 +110,18 @@ class SimidPlayer {
    * a session.
    */
   initializeAd() {
-    this.simidIframe_ = this.createSimidIframe_();
-    if (this.isNonLinear_) {
-      this.loadNonLinear_();
+    //validate -> if not don't even create iframe
+    if (!this.isValidDimensions()) {
+      console.log('Dimensions bigger than player');
+      return;
     }
+
+    this.simidIframe_ = this.createSimidIframe_();
+    
+    if (this.isNonLinear_) {
+      this.loadNonLinearDimensions_();
+    }
+
     this.requestDuration_ = NO_REQUESTED_DURATION;
 
     // Prepare for the case that init fails before sending
@@ -185,7 +193,7 @@ class SimidPlayer {
     // Set up css to overlay the SIMID iframe over the video creative.
     if (this.isNonLinear_) {
       // simidIframe.classList.add('nonlinear_ad');
-      // this.loadNonLinear_();
+      // this.loadNonLinearDimensions_();
     } else {
       simidIframe.classList.add('simid_creative');
     }
@@ -217,7 +225,7 @@ class SimidPlayer {
     this.simidProtocol.addListener(CreativeMessage.LOG, this.onReceiveCreativeLog.bind(this));
     this.simidProtocol.addListener(CreativeMessage.REQUEST_VIDEO_PAUSE, this.onRequestVideoPause.bind(this));
     this.simidProtocol.addListener(CreativeMessage.REQUEST_RESIZE, this.onExpandResize.bind(this));
-    this.simidProtocol.addListener(CreativeMessage.REQUEST_COLLAPSE, this.loadNonLinear_.bind(this));
+    this.simidProtocol.addListener(CreativeMessage.REQUEST_COLLAPSE, this.loadNonLinearDimensions_.bind(this));
   }
 
   /**
@@ -262,17 +270,23 @@ class SimidPlayer {
     };
   }
 
+  isValidDimensions() {
+    const playerDiv = document.getElementById('player_div');
+    const playerRect = playerDiv.getBoundingClientRect();
+    const dimensions = this.getNonLinearDimensions();
+
+    const heightFits = parseInt(dimensions.y) + parseInt(dimensions.height) <= parseInt(playerRect.height);
+    const widthFits = parseInt(dimensions.x) + parseInt(dimensions.width) <= parseInt(playerRect.width);
+    
+    return heightFits && widthFits;
+  }
+
   getNonLinearDimensions() {
     // The player div wraps all elements and is used as the offset.
     const x_val = document.getElementById('x_val').value;
     const y_val = document.getElementById('y_val').value;
     const width = document.getElementById('width').value;
     const height = document.getElementById('height').value;
-
-    // if (y_val + height > playerRect.height || x_val + width > playerRect.width) {
-    //   this.onCreativeFatalError(CreativeMessage.FATAL_ERROR);
-    //   this.sendLog("Dimensions bigger than player");
-    // }
 
     return {
       'x' : x_val,
@@ -284,19 +298,8 @@ class SimidPlayer {
     };
   }
 
-  loadNonLinear_() {
+  loadNonLinearDimensions_() {
     const dimensions = this.getNonLinearDimensions();
-    const playerDiv = document.getElementById('player_div');
-    const playerRect = playerDiv.getBoundingClientRect();
-
-//FIGURE THIS ISSUE OUT!
-    // if (dimensions.y + dimensions.height > playerRect.height || dimensions.x + dimensions.width > playerRect.width) {
-    //   console.log("HERE");
-    //   this.onCreativeFatalError(CreativeMessage.FATAL_ERROR);
-    //   console.log("HI");
-    //   this.sendLog("Dimensions bigger than player");
-    //   return;
-    // }
     
     this.simidIframe_.style.height = dimensions.height;
     this.simidIframe_.style.width = dimensions.width;
@@ -495,16 +498,16 @@ class SimidPlayer {
    * @param {StopCode} reason The reason the ad will stop.
    */
   stopAd(reason = StopCode.PLAYER_INITATED) {
-      // The iframe is only hidden on ad stoppage. The ad might still request
-      // tracking pixels before it is cleaned up.
-      this.hideSimidIFrame_();
-      const closeMessage = {
-        'code': reason,
-      }
-      // Wait for the SIMID creative to acknowledge stop and then clean
-      // up the iframe.
-      this.simidProtocol.sendMessage(PlayerMessage.AD_STOPPED)
-        .then(() => this.destroyIframeAndResumeContent_());
+    // The iframe is only hidden on ad stoppage. The ad might still request
+    // tracking pixels before it is cleaned up.
+    this.hideSimidIFrame_();
+    const closeMessage = {
+      'code': reason,
+    }
+    // Wait for the SIMID creative to acknowledge stop and then clean
+    // up the iframe.
+    this.simidProtocol.sendMessage(PlayerMessage.AD_STOPPED)
+      .then(() => this.destroyIframeAndResumeContent_());
   }
 
   /**
