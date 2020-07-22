@@ -21,12 +21,31 @@
       <button id="expand_button">Expand Ad</button>
       <button id="collapse_button">Collapse Ad</button>
     </div>
+    <div id="resizing_inputs">
+      <label for="x_val">X: </label>
+      <input type="number" id="resize_x_val" min="0" style="width: 50px;">
+
+      <label for="y_val">Y: </label>
+      <input type="number" id="resize_y_val" min="0" style="width: 50px;">
+
+      <label for="width">Width: </label>
+      <input type="number" id="resize_width" min="0" style="width: 50px;">
+
+      <label for="height">Height: </label>
+      <input type="number" id="resize_height" min="0" style="width: 50px;">
+
+      <button id="resize_button" onclick="resizing()">Resize Ad</button>
+    </div>
     <script>
       //The creative should first call ready
       const nonLinear = new NonLinear();
       // This implementation is immediately ready but other creatives
       // may wish to wait for assets to load before calling ready.
       nonLinear.ready();
+
+      function resizing() {
+        nonLinear.onRequestResize();
+      }
     </script>
   </body>
 </html>

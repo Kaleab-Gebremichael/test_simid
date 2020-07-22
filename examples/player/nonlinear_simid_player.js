@@ -111,7 +111,7 @@ class SimidPlayer {
    */
   initializeAd() {
     //validate -> if not don't even create iframe
-    if (!this.isValidDimensions()) {
+    if (this.isNonLinear_ && !this.isValidDimensions(this.getNonLinearDimensions())) {
       console.log('Dimensions bigger than player');
       return;
     }
@@ -224,8 +224,9 @@ class SimidPlayer {
     this.simidProtocol.addListener(CreativeMessage.GET_MEDIA_STATE, this.onGetMediaState.bind(this));
     this.simidProtocol.addListener(CreativeMessage.LOG, this.onReceiveCreativeLog.bind(this));
     this.simidProtocol.addListener(CreativeMessage.REQUEST_VIDEO_PAUSE, this.onRequestVideoPause.bind(this));
-    this.simidProtocol.addListener(CreativeMessage.REQUEST_RESIZE, this.onExpandResize.bind(this));
+    this.simidProtocol.addListener(CreativeMessage.REQUEST_EXPAND, this.onExpandResize.bind(this));
     this.simidProtocol.addListener(CreativeMessage.REQUEST_COLLAPSE, this.loadNonLinearDimensions_.bind(this));
+    this.simidProtocol.addListener(CreativeMessage.REQUEST_RESIZE, this.onRequestResize.bind(this));
   }
 
   /**
@@ -270,10 +271,10 @@ class SimidPlayer {
     };
   }
 
-  isValidDimensions() {
+  isValidDimensions(dimensions) {
     const playerDiv = document.getElementById('player_div');
     const playerRect = playerDiv.getBoundingClientRect();
-    const dimensions = this.getNonLinearDimensions();
+    // const dimensions = this.getNonLinearDimensions();
 
     const heightFits = parseInt(dimensions.y) + parseInt(dimensions.height) <= parseInt(playerRect.height);
     const widthFits = parseInt(dimensions.x) + parseInt(dimensions.width) <= parseInt(playerRect.width);
@@ -312,7 +313,7 @@ class SimidPlayer {
     this.contentVideoElement_.play();
   }
 
-  onExpandResize(creativeMessage) {
+  onExpandResize(incomingMessage) {
     if (!this.isNonLinear_){
       this.sendLog("Cannot resize linear ads");
       return;
@@ -327,6 +328,33 @@ class SimidPlayer {
     this.simidIframe_.style.top = `${fullDimensions.y}px`;
 
     this.onRequestVideoPause(CreativeMessage.REQUEST_VIDEO_PAUSE);
+    this.simidProtocol.resolve(incomingMessage);
+  }
+
+  onRequestResize(incomingMessage) {
+    const x_val  = incomingMessage.args['x_val'];
+    const y_val  = incomingMessage.args['y_val'];
+    const width  = incomingMessage.args['width'];
+    const height  = incomingMessage.args['height'];
+
+    const resizeDimensions = {
+      'x' : x_val,
+      'y' : y_val,
+      'width' : width,
+      'height' : height,
+    }
+
+    if (!this.isValidDimensions(resizeDimensions)){
+      console.log("Not valid dimensions");
+      return;
+    }
+    this.simidIframe_.style.height = resizeDimensions.height;
+    this.simidIframe_.style.width = resizeDimensions.width;
+    
+    this.simidIframe_.style.left = `${resizeDimensions.x}px`;
+    this.simidIframe_.style.top = `${resizeDimensions.y}px`;
+
+    this.simidProtocol.resolve(incomingMessage);
   }
 
   /**
