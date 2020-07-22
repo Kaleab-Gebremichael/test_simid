@@ -26,8 +26,27 @@
       width: 640px;
       height: 480px;
     }
+    .disabled {
+
+    }
   </style>
   <script>
+
+    function enableDisable() {
+      let isNonLin = document.getElementById("nonlinear_ad");
+      let uniqueDimensions = document.querySelectorAll(".unique_dimension");
+      if (isNonLin.checked) {
+        uniqueDimensions.forEach(function(dimension) {
+          dimension.disabled = false;
+        })
+      }
+      else {
+        uniqueDimensions.forEach(function(dimension) {
+          dimension.disabled = true;
+        })
+      }
+    }
+    
     let simidPlayer;
     function initAd() {
       // clean old ad if it exists
@@ -36,6 +55,7 @@
       }
 
       let isNonLinear = document.getElementById("nonlinear_ad").checked;
+
       // Init ad should be called before playad.
       simidPlayer = new SimidPlayer(() => {simidPlayer = null;}, isNonLinear);
       simidPlayer.initializeAd();
@@ -112,9 +132,9 @@
       <tr>
         <td>Ad type</td>
         <td>
-          <input type="radio" id="linear_ad" name="ad_type" checked> <label for="linear_ad" style="font-size: 16px;">Linear
+          <input type="radio" id="linear_ad" name="ad_type" checked onclick="enableDisable()"> <label for="linear_ad" style="font-size: 16px;">Linear
         Ad</label>
-        <input type="radio" id="nonlinear_ad" name="ad_type"> <label for="nonlinear_ad" style="font-size: 16px;">Non-Linear
+        <input type="radio" id="nonlinear_ad" name="ad_type" onclick="enableDisable()"> <label for="nonlinear_ad" style="font-size: 16px;">Non-Linear
           Ad</label>
         </td>
       </tr>
@@ -122,16 +142,16 @@
         <td>Creative Dimensions</td>
         <td>
           <label for="x_val">X: </label>
-          <input type="number" id="x_val" style="width: 50px;">
+          <input class="unique_dimension" type="number" id="x_val" style="width: 50px;" disabled>
 
           <label for="y_val">Y: </label>
-          <input type="number" id="y_val" style="width: 50px;">
+          <input class="unique_dimension" type="number" id="y_val" style="width: 50px;" disabled>
 
           <label for="width">Width: </label>
-          <input type="number" id="width" style="width: 50px;">
+          <input class="unique_dimension" type="number" id="width" style="width: 50px;" disabled>
 
           <label for="height">Height: </label>
-          <input type="number" id="height" style="width: 50px;">
+          <input class="unique_dimension" type="number" id="height" style="width: 50px;" disabled>
         </td>
       </tr>
       <tr>
