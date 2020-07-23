@@ -162,10 +162,10 @@ class SimidPlayer {
     this.sendLog("Ad closed by player");
   }
 
-  stopAd() {
-    this.onRequestStop(CreativeMessage.REQUEST_STOP);
-    this.sendLog("Ad stopped by player");
-  }
+  // stopAd() {
+  //   this.onRequestStop(CreativeMessage.REQUEST_STOP);
+  //   this.sendLog("Ad stopped by player");
+  // }
 
   skipAd() {
     this.onRequestSkip(CreativeMessage.REQUEST_SKIP);
@@ -191,10 +191,7 @@ class SimidPlayer {
     // created iframe.
     playerDiv.appendChild(simidIframe);
     // Set up css to overlay the SIMID iframe over the video creative.
-    if (this.isNonLinear_) {
-      // simidIframe.classList.add('nonlinear_ad');
-      // this.loadNonLinearDimensions_();
-    } else {
+    if (!this.isNonLinear_) {
       simidIframe.classList.add('simid_creative');
     }
     // Set the iframe creative, this should be an html creative.
@@ -274,7 +271,6 @@ class SimidPlayer {
   isValidDimensions(dimensions) {
     const playerDiv = document.getElementById('player_div');
     const playerRect = playerDiv.getBoundingClientRect();
-    // const dimensions = this.getNonLinearDimensions();
 
     const heightFits = parseInt(dimensions.y) + parseInt(dimensions.height) <= parseInt(playerRect.height);
     const widthFits = parseInt(dimensions.x) + parseInt(dimensions.width) <= parseInt(playerRect.width);
