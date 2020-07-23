@@ -90,6 +90,18 @@ class SimidPlayer {
     this.rejectInitializationPromise_ = null;
 
     /**
+     * A boolean value that tracks whether or not the creative has been resized.
+     * @private {boolean}
+     */
+    this.isResized_ = false;
+
+    /**
+     * An array of the resized nonlinear creative's dimensions.
+     * @private {?Array<!Integer>}
+     */
+    this.resizeDimensions_ = null;
+
+    /**
      * A promise that resolves once the creative responds to initialization with resolve.
      * @private {!Promise}
      */
@@ -280,19 +292,22 @@ class SimidPlayer {
 
   getNonLinearDimensions() {
     // The player div wraps all elements and is used as the offset.
-    const x_val = document.getElementById('x_val').value;
-    const y_val = document.getElementById('y_val').value;
-    const width = document.getElementById('width').value;
-    const height = document.getElementById('height').value;
-
-    return {
-      'x' : x_val,
-      'y' : y_val,
-      'width' : width,
-      'height' : height,
-      // TODO: This example does not currently support transition duration.
-      'transitionDuration': 0
-    };
+    const x_val = document.getElementById('x_val').value;;
+    const y_val = document.getElementById('y_val').value;;
+    const width = document.getElementById('width').value;;
+    const height = document.getElementById('height').value;;
+    if(this.isResized_){
+      return this.resizeDimensions_
+    } else {
+      return {
+        'x' : x_val,
+        'y' : y_val,
+        'width' : width,
+        'height' : height,
+        // TODO: This example does not currently support transition duration.
+        'transitionDuration': 0
+      };
+    }
   }
 
   loadNonLinearDimensions_() {
@@ -328,6 +343,7 @@ class SimidPlayer {
   }
 
   onRequestResize(incomingMessage) {
+    this.isResized_ = true;
     const x_val  = incomingMessage.args['x_val'];
     const y_val  = incomingMessage.args['y_val'];
     const width  = incomingMessage.args['width'];
@@ -340,6 +356,7 @@ class SimidPlayer {
       'height' : height,
     }
 
+    this.resizeDimensions_ = resizeDimensions;
     if (!this.isValidDimensions(resizeDimensions)){
       console.log("Not valid dimensions");
       return;
